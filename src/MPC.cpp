@@ -23,6 +23,8 @@ int number_of_vars=6;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
+double ref_v = 40;
+
 size_t x_start = 0;
 size_t y_start = x_start + N;
 size_t psi_start = y_start + N;
@@ -48,23 +50,25 @@ class FG_eval {
 
     // Cost function
 
+    vector<int> ct={3500,3000,1,5,5,700,200,10};
+
     // The part of the cost based on the reference state.
     for (int t = 0; t < N; t++) {
-      fg[0] += CppAD::pow(vars[cte_start + t], 2);
-      fg[0] += CppAD::pow(vars[epsi_start + t], 2);
-      fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
+      fg[0] += ct[0] * CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += ct[1] * CppAD::pow(vars[epsi_start + t], 2);
+      fg[0] += ct[2] * CppAD::pow(vars[v_start + t] - ref_v, 2);
     }
 
     // Minimize the use of actuators.
     for (int t = 0; t < N - 1; t++) {
-      fg[0] += CppAD::pow(vars[delta_start + t], 2);
-      fg[0] += CppAD::pow(vars[a_start + t], 2);
+      fg[0] += ct[3] * CppAD::pow(vars[delta_start + t], 2);
+      fg[0] += ct[4] * CppAD::pow(vars[a_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
     for (int t = 0; t < N - 2; t++) {
-      fg[0] += CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-      fg[0] += CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+      fg[0] += ct[6] * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+      fg[0] += ct[7] * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
     
     fg[1 + x_start] = vars[x_start];
@@ -139,6 +143,9 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // TODO: Set the number of constraints
   size_t n_constraints = number_of_vars * N;
 
+
+  vector<double> vars_temp = {0.1,0.1,0.1,0.1,0.1,0.1,0.1};
+
   double x = state[0];
   double y = state[1];
   double psi = state[2];
@@ -159,7 +166,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   vars[v_start] = v;
   vars[cte_start] = cte;
   vars[epsi_start] = epsi;
-  
   
   
   Dvector vars_lowerbound(n_vars);
@@ -209,10 +215,14 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   constraints_upperbound[v_start] = v;
   constraints_upperbound[cte_start] = cte;
   constraints_upperbound[epsi_start] = epsi;  
+
   
   
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
+
+
+  
 
   //
   // NOTE: You don't have to worry about these options
@@ -240,20 +250,30 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
       options, vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,
       constraints_upperbound, fg_eval, solution);
 
+
+
   // Check some of the solution values
   ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
+
 
   // Cost
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
+
+  std::cout << "size " << solution.x.size() << "  " << (int)(solution.status) << std::endl;
 
   // TODO: Return the first actuator values. The variables can be accessed with
   // `solution.x[i]`.
   //
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   // creates a 2 element double vector.
-return {solution.x[x_start + 1],   solution.x[y_start + 1],
+  //return vars_temp;
+
+/*return {solution.x[x_start + 1],   solution.x[y_start + 1],
           solution.x[psi_start + 1], solution.x[v_start + 1],
-          solution.x[cte_start + 1], solution.x[epsi_start + 1],
-          solution.x[delta_start],   solution.x[a_start]};
+          solution.x[cte_start + 1], solution.x[epsi_start + 1]};
+          //,solution.x[delta_start],   solution.x[a_start]};*/
+
+return {solution.x[delta_start],solution.x[a_start]};
+
 }
