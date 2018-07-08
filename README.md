@@ -35,7 +35,7 @@ I used below equation to adjust x, y, psi, and v of the state vector:  (see line
 - delay = actuator_delay /1000. (delay in seconds) 
 - x = x + v*cos(0)*delay
 - y = y + v*sin(0)*delay
-- psi= psi + v*steer_value*delay/Lf
+- psi= psi + v * steer_value * delay / Lf
 - v = v+ throttle_value*delay
 
 
