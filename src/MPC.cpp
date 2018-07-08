@@ -7,8 +7,8 @@ using CppAD::AD;
 
 // TODO: Set the timestep length and duration
 size_t N = 10; // tried 15,10,5 : 5 gave very bad result, 15 and 10 gave similar result. so, I chose 10 to have better performance
-double dt = 0.1; // tried 0.5, 0.2, 0.1, 0.05 : 0.5 gave bad result and prediction was not algined with the groundtruth!. 0.2 also was bad.
-                  // 0.1 worked. 0.05 was overdesigned and reduced performance. 
+double dt = 0.1; // tried 0.5, 0.2, 0.1, 0.05 : 0.5 gave bad result and prediction was not algined with the groundtruth! 
+                //0.2 also was bad. 0.1 worked. 0.05 was overdesigned and reduced performance. 
 
 int number_of_vars=6;
 
