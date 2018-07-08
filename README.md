@@ -1,3 +1,15 @@
+# Implementation specific details:
+* Some tips regarding IPOPT installation
+- if you see out of index error even after you took care of all semantic checks of the vectors, that is likely due to ILP solver returing empty solution. the reason could be IPOPT needs a solver like HSL or others.
+-  I could not find hsllib.so and the website did not give me link to download. 
+- if you install ipopt using configure, make, make install, you most likely see this issue
+- if you install ipopt using the "install_ipopt.sh" script provided in this project, the script will install another Mumps solver.
+so, yo udo not need hsllib. 
+- during installation the script download multiple tgz file form differetn location. if you see one the location is not 
+accessible, search the related tgz or zip file in google and after finding the path, replace the path in get.* file of each Thirdparty. I had to replace the URL path of Mumps in get.Mumps 
+
+
+
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
 
