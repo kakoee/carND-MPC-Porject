@@ -109,7 +109,7 @@ int main() {
           vector<double> points_y;
 
           // transform 
-          for (int i = 0; i < ptsx.size(); i++) {
+          for (unsigned i = 0; i < ptsx.size(); i++) {
             double dx = ptsx[i] - px;
             double dy = ptsy[i] - py;
             points_x.push_back(dx * cos(-psi) - dy * sin(-psi));
@@ -127,8 +127,8 @@ int main() {
 
           Eigen::VectorXd state(6);
           //adding delay to the state vector. only for the first 4 variable
-          state << (0 + v*cos(0)*delay), (0 + v*sin(0)*delay), 0-(v*steer_value*delay/Lf), v+throttle_value*delay, 
-          cte, epsi; // not worth to add delay for cte and epsi
+          state << (0 + v*cos(0)*delay), (0 + v*sin(0)*delay), 0-(v*steer_value*delay/Lf), v+(throttle_value*delay), 
+                   cte, epsi; // not worth to add delay for cte and epsi
 
           vector<double> vars = mpc.Solve(state, coeffs);
           steer_value = vars[0];
@@ -147,7 +147,7 @@ int main() {
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
 
-          for (int i = 2; i < vars.size(); i ++) {
+          for (unsigned  i = 2; i < vars.size(); i ++) {
             if (i%2 == 0) {
               mpc_x_vals.push_back(vars[i]);
             }
