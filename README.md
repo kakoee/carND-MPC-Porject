@@ -5,7 +5,7 @@
 - if you install ipopt using the "install_ipopt.sh" script provided in this project, the script will install Mumps solver.
 so, yo udo not need hsllib. 
 - during installation the script download multiple tgz file form differetn location. if you see one the location is not 
-accessible, search the related tgz or zip file in google and after finding the path, replace the path in get.* file of each Thirdparty. I had to replace the URL path of Mumps in get.Mumps 
+accessible, search the related tgz or zip file in google and after finding the path, replace the path in get.* file of each Thirdparty. For instance, I had to replace the URL path of Mumps in get.Mumps 
 
 # Implementation specific details:
 ### The Model: 
@@ -32,7 +32,7 @@ The waypoints are preprocessed by transforming them to the vehicle's perspective
 ### Model Predictive Control with Latency: 
 for considering Latency, I adjusted the state vector considering the actuator delay, and then feed the state vector to the solver. 
 I used below equation to adjust x, y, psi, and v of the state vector:  (see line 132-133 of main.cpp)
-
+- delay = actuator_delay /1000. (delay in seconds) 
 - x = x + v*cos(0)*delay
 - y = y + v*sin(0)*delay
 - psi= psi + v*steer_value*delay/Lf
@@ -40,9 +40,10 @@ I used below equation to adjust x, y, psi, and v of the state vector:  (see line
 
 
 
-
 # CarND-Controls-MPC
-Self-Driving Car Engineer Nanodegree Program - below is original Udacity readme
+- Below is original Udacity readme
+
+Self-Driving Car Engineer Nanodegree Program - 
 
 ---
 
