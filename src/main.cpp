@@ -101,7 +101,8 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          //for accouting delay
+
+          //for accouting delay 
           double steer_value = j[1]["steering_angle"];
           double throttle_value = j[1]["throttle"];
 
@@ -126,9 +127,10 @@ int main() {
           float delay = act_delay/1000.0; // delay in sec
 
           Eigen::VectorXd state(6);
+
           //adding delay to the state vector. only for the first 4 variable
           state << (0 + v*cos(0)*delay), (0 + v*sin(0)*delay), 0-(v*steer_value*delay/Lf), v+(throttle_value*delay), 
-                   cte, epsi; // not worth to add delay for cte and epsi
+                   cte, epsi; // was not worth to add delay for cte and epsi
 
           vector<double> vars = mpc.Solve(state, coeffs);
           steer_value = vars[0];
