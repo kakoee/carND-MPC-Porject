@@ -85,6 +85,9 @@ int main() {
         string event = j[0].get<string>();
         if (event == "telemetry") {
           // j[1] is the data JSON object
+          const double Lf = 2.67;
+          const int act_delay = 100;
+
           vector<double> ptsx = j[1]["ptsx"];
           vector<double> ptsy = j[1]["ptsy"];
           double px = j[1]["x"];
@@ -98,28 +101,43 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          Eigen::VectorXd ptsx_eigen = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(ptsx.data(), ptsx.size());//(ptsx.data());
-          Eigen::VectorXd ptsy_eigen = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(ptsy.data(), ptsy.size());//(ptsy.data());          
+          //for accouting delay
+          double steer_value = j[1]["steering_angle"];
+          double throttle_value = j[1]["throttle"];
 
-          Eigen::VectorXd  coeffs = polyfit(ptsx_eigen, ptsy_eigen, 3);
-          double cte = polyeval(coeffs, px) - py;
-          double epsi = psi - atan(coeffs[1]);
+          vector<double> points_x;
+          vector<double> points_y;
+
+          // transform 
+          for (int i = 0; i < ptsx.size(); i++) {
+            double dx = ptsx[i] - px;
+            double dy = ptsy[i] - py;
+            points_x.push_back(dx * cos(-psi) - dy * sin(-psi));
+            points_y.push_back(dx * sin(-psi) + dy * cos(-psi));
+          }
+
+          Eigen::Map<Eigen::VectorXd> points_x_(&points_x[0], 6);
+          Eigen::Map<Eigen::VectorXd> points_y_(&points_y[0], 6);
+
+          auto coeffs = polyfit(points_x_, points_y_, 3);
+          double cte = polyeval(coeffs, 0);  // px = 0, py = 0
+          double epsi = -atan(coeffs[1]);  // p
+
+          float delay = act_delay/1000.0; // delay in sec
+
           Eigen::VectorXd state(6);
-          state << px, py, psi, v, cte, epsi;
-          
-          vector<double> vars = {0.1,0.1,0.1,0.1,0.1,0.1,0.1};
-          vars = mpc.Solve(state, coeffs);
-          
-          double steer_value;
-          double throttle_value;
-          
+          //adding delay to the state vector. only for the first 4 variable
+          state << (0 + v*cos(0)*delay), (0 + v*sin(0)*delay), 0-(v*steer_value*delay/Lf), v+throttle_value*delay, 
+          cte, epsi; // not worth to add delay for cte and epsi
+
+          vector<double> vars = mpc.Solve(state, coeffs);
           steer_value = vars[0];
           throttle_value = vars[1];
-          
+
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
+          msgJson["steering_angle"] = steer_value/deg2rad(25);
           msgJson["throttle"] = throttle_value;
 
           //Display the MPC predicted trajectory 
@@ -129,12 +147,29 @@ int main() {
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
 
+          for (int i = 2; i < vars.size(); i ++) {
+            if (i%2 == 0) {
+              mpc_x_vals.push_back(vars[i]);
+            }
+            else {
+              mpc_y_vals.push_back(vars[i]);
+            }
+          }
+
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
 
           //Display the waypoints/reference line
           vector<double> next_x_vals;
           vector<double> next_y_vals;
+
+          double poly_inc = 2.5;
+          int num_points = 25;
+          for ( int i = 0; i < num_points; i++ ) {
+            double x = poly_inc * i;
+            next_x_vals.push_back( x );
+            next_y_vals.push_back( polyeval(coeffs, x) );
+          }
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
@@ -144,7 +179,7 @@ int main() {
 
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
+          // std::cout << msg << std::endl;
           // Latency
           // The purpose is to mimic real driving conditions where
           // the car does actuate the commands instantly.
@@ -154,7 +189,7 @@ int main() {
           //
           // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
           // SUBMITTING.
-          this_thread::sleep_for(chrono::milliseconds(100));
+          this_thread::sleep_for(chrono::milliseconds(act_delay));
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {
