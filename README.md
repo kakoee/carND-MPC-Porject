@@ -1,11 +1,11 @@
 # Some tips regarding IPOPT installation
-- if you see out of index error even after you take care of all semantic checks of the vectors, that is likely due to ILP solver returing empty solution. the reason could be IPOPT needs a solver like HSL or others and it cannot find it.
--  I could not find hsllib.so and the website did not give me link to download. 
-- if you install ipopt using configure, make, make install, you most likely see this issue
-- if you install ipopt using the "install_ipopt.sh" script provided in this project, the script will install Mumps solver.
-so, yo udo not need hsllib. 
-- during installation the script download multiple tgz file form differetn location. if you see one the location is not 
-accessible, search the related tgz or zip file in google and after finding the path, replace the path in get.* file of each Thirdparty. For instance, I had to replace the URL path of Mumps in get.Mumps 
+- If you see out of index error even after you take care of all semantic checks of the vectors, that is likely due to ILP solver returning empty solution. the reason could be IPOPT needs a solver like HSL or others and it cannot find it.
+-  I could not find hsllib.so and the hsl.uk website did not give me the link to download. 
+- If you install ipopt using configure, make, make install, you most likely see this issue
+- If you install ipopt using the "install_ipopt.sh" script provided in this project, the script will install Mumps solver.
+so, you do not need hsllib. 
+- During installation the script downloads multiple tgz file from different locations. if you see one of the locations is not 
+accessible, search the related tgz or zip file in google and after finding the path, replace the path in get.* file of related Thirdparty. For instance, I had to replace the URL path of Mumps in get.Mumps 
 
 # Implementation specific details:
 ### The Model: 
@@ -21,8 +21,8 @@ I used a third degree polynomial with an ILP solver from IPOPT/CPPAD libraries t
 
 ### Timestep Length and Elapsed Duration (N & dt):
 for N I tried 15,10,5 : 5 gave very bad result, 15 and 10 gave similar result. so, I chose 10 to have better performance
-For dt I tried 0.5, 0.2, 0.1, 0.05 : 0.5 gave bad result and prediction was not algined with the groundtruth! 
-0.2 also was bad. 0.1 worked. 0.05 was overdesigned and reduced performance.see line 9-10 of MPC.cpp 
+For dt I tried 0.5, 0.2, 0.1, 0.05 : 0.5 gave bad result and prediction was not aligned with the ground truth! 
+0.2 also was bad. 0.1 worked. 0.05 was over-designed and reduced performance.see line 9-10 of MPC.cpp 
 
 
 ### Polynomial Fitting and MPC Preprocessing: 
