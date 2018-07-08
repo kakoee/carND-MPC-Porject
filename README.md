@@ -1,13 +1,36 @@
 # Implementation specific details:
 * Some tips regarding IPOPT installation
-- if you see out of index error even after you took care of all semantic checks of the vectors, that is likely due to ILP solver returing empty solution. the reason could be IPOPT needs a solver like HSL or others.
+- if you see out of index error even after you take care of all semantic checks of the vectors, that is likely due to ILP solver returing empty solution. the reason could be IPOPT needs a solver like HSL or others and it cannot find it.
 -  I could not find hsllib.so and the website did not give me link to download. 
 - if you install ipopt using configure, make, make install, you most likely see this issue
-- if you install ipopt using the "install_ipopt.sh" script provided in this project, the script will install another Mumps solver.
+- if you install ipopt using the "install_ipopt.sh" script provided in this project, the script will install Mumps solver.
 so, yo udo not need hsllib. 
 - during installation the script download multiple tgz file form differetn location. if you see one the location is not 
 accessible, search the related tgz or zip file in google and after finding the path, replace the path in get.* file of each Thirdparty. I had to replace the URL path of Mumps in get.Mumps 
 
+* MPC implmentation and parameter tuning 
+
+- The Model: 
+I used the Kinematic model which contains vehicle's x and y coordinates, orientation angle (psi), velocity (v), the cross-track error(cte) and psi error (epsi). Actuator outputs are acceleration (a) and steering angle(delta). The model combines the state and actuations from the previous timestep to calculate the state for the current timestep. 
+I used a third degree polynomial with an ILP solver from IPOPT/CPPAD libraries to minimize the cost of error between prediction and measurement values. following equations are used in the ILP solver:
+      - x_[t] = x[t-1] + v[t-1] * cos(psi[t-1]) * dt
+      - y_[t] = y[t-1] + v[t-1] * sin(psi[t-1]) * dt
+      - psi_[t] = psi[t-1] + v[t-1] / Lf * delta[t-1] * dt
+      - v_[t] = v[t-1] + a[t-1] * dt
+      - cte[t] = f(x[t-1]) - y[t-1] + v[t-1] * sin(epsi[t-1]) * dt
+      - epsi[t] = psi[t] - psides[t-1] + v[t-1] * delta[t-1] / Lf * dt
+
+
+
+
+Timestep Length and Elapsed Duration (N & dt): Student discusses the reasoning behind the chosen N (timestep length) and dt (elapsed duration between timesteps) values. Additionally the student details the previous values tried.
+The values chosen for N and dt are 10 and 0.1, respectively. Admittedly, this was at the suggestion of Udacity's provided office hours for the project. These values mean that the optimizer is considering a one-second duration in which to determine a corrective trajectory. Adjusting either N or dt (even by small amounts) often produced erratic behavior. Other values tried include 20 / 0.05, 8 / 0.125, 6 / 0.15, and many others.
+
+Polynomial Fitting and MPC Preprocessing: A polynomial is fitted to waypoints. If the student preprocesses waypoints, the vehicle state, and/or actuators prior to the MPC procedure it is described.
+The waypoints are preprocessed by transforming them to the vehicle's perspective (see main.cpp lines 108-113). This simplifies the process to fit a polynomial to the waypoints because the vehicle's x and y coordinates are now at the origin (0, 0) and the orientation angle is also zero.
+
+Model Predictive Control with Latency: The student implements Model Predictive Control that handles a 100 millisecond latency. Student provides details on how they deal with latency.
+The approach to dealing with latency was twofold (not counting simply limiting the speed): the original kinematic equations depend upon the actuations from the previous timestep, but with a delay of 100ms (which happens to be the timestep interval) the actuations are applied another timestep later, so the equations have been altered to account for this (MPC.cpp lines 104-107). Also, in addition to the cost functions suggested in the lessons (punishing CTE, epsi, difference between velocity and a reference velocity, delta, acceleration, change in delta, and change in acceleration) an additional cost penalizing the combination of velocity and delta (MPC.cpp line 63) was included and results in much more controlled cornering.
 
 
 # CarND-Controls-MPC
