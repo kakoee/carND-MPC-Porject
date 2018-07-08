@@ -8,7 +8,7 @@ so, yo udo not need hsllib.
 accessible, search the related tgz or zip file in google and after finding the path, replace the path in get.* file of each Thirdparty. I had to replace the URL path of Mumps in get.Mumps 
 
 # Implementation specific details:
-- The Model: 
+### The Model: 
 I used the Kinematic model which contains vehicle's x and y coordinates, orientation angle (psi), velocity (v), the cross-track error(cte) and psi error (epsi). Actuator outputs are acceleration (a) and steering angle(delta). The model combines the state and actuations from the previous timestep to calculate the state for the current timestep. 
 I used a third degree polynomial with an ILP solver from IPOPT/CPPAD libraries to minimize the cost of error between prediction and measurement values. following equations are used in the ILP solver:
 - x_[t] = x[t-1] + v[t-1] * cos(psi[t-1]) * dt
@@ -19,17 +19,17 @@ I used a third degree polynomial with an ILP solver from IPOPT/CPPAD libraries t
 - epsi[t] = psi[t] - psides[t-1] + v[t-1] * delta[t-1] / Lf * dt
 
 
--Timestep Length and Elapsed Duration (N & dt):
+### Timestep Length and Elapsed Duration (N & dt):
 for N I tried 15,10,5 : 5 gave very bad result, 15 and 10 gave similar result. so, I chose 10 to have better performance
 For dt I tried 0.5, 0.2, 0.1, 0.05 : 0.5 gave bad result and prediction was not algined with the groundtruth! 
-0.2 also was bad. 0.1 worked. 0.05 was overdesigned and reduced performance. 
+0.2 also was bad. 0.1 worked. 0.05 was overdesigned and reduced performance.see line 9-10 of MPC.cpp 
 
 
-- Polynomial Fitting and MPC Preprocessing: 
+### Polynomial Fitting and MPC Preprocessing: 
 
 The waypoints are preprocessed by transforming them to the vehicle's perspective (see main.cpp lines 113-118). This simplifies the process to fit a third degree polynomial to the waypoints because the vehicle's x and y coordinates are now at the (0, 0) and the orientation angle is also zero (see line 123-125 of main.cpp).
 
-- Model Predictive Control with Latency: 
+### Model Predictive Control with Latency: 
 for considering Latency, I adjusted the state vector considering the actuator delay, and then feed the state vector to the solver. 
 I used below equation to adjust x, y, psi, and v of the state vector:  (see line 132-133 of main.cpp)
 
@@ -39,8 +39,10 @@ I used below equation to adjust x, y, psi, and v of the state vector:  (see line
 - v = v+ throttle_value*delay
 
 
+
+
 # CarND-Controls-MPC
-Self-Driving Car Engineer Nanodegree Program
+Self-Driving Car Engineer Nanodegree Program - below is original Udacity readme
 
 ---
 
